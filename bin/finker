@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require 'finker'
+
+unless File.exist?(Finker::CONFIG_FILE)
+  STDERR.puts "could not find #{Finker::CONFIG_FILE}"
+  exit 1
+end
+
+Finker::CLI.start
