@@ -19,7 +19,7 @@ module Finker
         dirpath = File.dirname(raw_path)
         File.exist?(raw_path) || FileUtils.mkdir_p(dirpath)
         FileUtils.mv(path, raw_path)
-        FileUtils.ln_s(Pathname.new(raw_path).expand_path, path)
+        FileUtils.ln_s(raw_path, path)
       end
     end
 
@@ -27,15 +27,15 @@ module Finker
     def install
       @config.each_links do |path, raw_path|
         File.exist?(path) && FileUtils.rm(path)
-        FileUtils.ln_s(Pathname.new(raw_path).expand_path, path)
+        FileUtils.ln_s(raw_path, path)
       end
     end
 
     desc 'uninstall', 'remove linked files and copy here files'
     def uninstall
       @config.each_links do |path, raw_path|
-        FileUtils.rm(path)
-        FileUtils.cp(Pathname.new(raw_path).expand_path, path)
+        File.exist?(path) && FileUtils.rm(path)
+        FileUtils.cp(raw_path, path)
       end
     end
 

@@ -31,10 +31,17 @@ module Finker
       end
     end
 
+    def rawpath2real(rawpath)
+      if rawpath =~ /\A\//
+        rawpath = rawpath[1..-1]
+      end
+      Pathname.new(rawpath).expand_path
+    end
+
     def each_links
       link = @config['link']
       self.expand_links([], link).flatten.each do |path|
-        yield expand_env_var(path), path
+        yield expand_env_var(path), rawpath2real(path)
       end
     end
   end
