@@ -35,7 +35,7 @@ module Finker
       if rawpath =~ /\A\//
         rawpath = rawpath[1..-1]
       end
-      Pathname.new(rawpath).expand_path
+      Pathname.new(rawpath).expand_path.to_s
     end
 
     def each_links

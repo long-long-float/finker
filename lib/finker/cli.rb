@@ -7,7 +7,7 @@ require 'pathname'
 
 module Finker
   class CLI < Thor
-    def initialize(args = {}, options = {}, config = {})
+    def initialize(args = [], options = {}, config = {})
       super
 
       @config = Finker::Config.new
