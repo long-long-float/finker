@@ -9,7 +9,9 @@ describe Finker do
   end
 
   describe Finker::CLI do
-    before do
+    before do |example|
+      next if example.metadata[:skip_before]
+
       FileUtils.mkdir_p('working')
       FileUtils.cd('working')
 
@@ -25,6 +27,12 @@ link:
 
       FileUtils.mkdir_p('/path/to')
       FileUtils.mkdir_p('/home/hoge')
+    end
+
+    it 'raises if config file is not existing', skip_before: true do
+      expect do
+        Finker::CLI.new.start
+      end.to raise_error(Finker::Errors::ConfigFileNotFound)
     end
 
     describe '#setup' do
