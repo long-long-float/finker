@@ -1,4 +1,5 @@
 require "finker/version"
+require "finker/errors"
 require "finker/cli"
 
 module Finker
