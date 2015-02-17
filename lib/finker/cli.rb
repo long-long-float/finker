@@ -18,6 +18,16 @@ module Finker
       @config.each_links do |path, raw_path|
         dirpath = File.dirname(raw_path)
         File.exist?(raw_path) || FileUtils.mkdir_p(dirpath)
+
+        unless File.exist?(path)
+          raise Finker::Errors::FileNotFound, path
+        end
+
+        if File.lstat(path).ftype == 'link'
+          # skip if it has already set up
+          next
+        end
+
         FileUtils.mv(path, raw_path)
         FileUtils.ln_s(raw_path, path)
       end
