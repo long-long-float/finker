@@ -10,6 +10,10 @@ module Finker
     def initialize(args = [], options = {}, config = {})
       super
 
+      unless File.exist?(Finker::CONFIG_FILE)
+        raise Finker::Errors::ConfigFileNotFound
+      end
+
       @config = Finker::Config.new
     end
 

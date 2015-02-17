@@ -1,5 +1,9 @@
 module Finker
   module Errors
-    class FileNotFound < StandardError; end
+    class Error < StandardError; end
+
+    class FileNotFound < Error; end
+    class ConfigFileNotFound < Error; end
+
   end
 end

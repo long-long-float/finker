@@ -2,9 +2,8 @@
 
 require 'finker'
 
-unless File.exist?(Finker::CONFIG_FILE)
-  STDERR.puts "could not find #{Finker::CONFIG_FILE}"
-  exit 1
+begin
+  Finker::CLI.start
+rescue Finker::Errors::Error => e
+  p e
 end
-
-Finker::CLI.start
