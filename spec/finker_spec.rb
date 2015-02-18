@@ -36,40 +36,40 @@ link:
     end
 
     describe '#setup' do
-      context 'on normal' do
-        before do
-          [FILE_PATH, HOGERC_PATH].each do |path|
-            FileUtils.touch(path)
-          end
+      before do |example|
+        next if example.metadata[:skip_setup_before]
 
-          Finker::CLI.new.setup
+        [FILE_PATH, HOGERC_PATH].each do |path|
+          FileUtils.touch(path)
         end
 
-        it 'creates symbolic links' do
-          [FILE_PATH, HOGERC_PATH].each do |path|
-            expect(File.lstat(path).ftype).to eq 'link'
-          end
-        end
+        Finker::CLI.new.setup
+      end
 
-        it 'moves original files' do
-          expect(File.lstat('/working/path/to/file').ftype).to eq 'file'
-          expect(File.lstat('/working/$ENV_VAR/.hogerc').ftype).to eq 'file'
-        end
-
-        it 'creates symbolic links pointing valid files' do
-          expect(File.readlink(FILE_PATH)).to eq '/working/path/to/file'
-          expect(File.readlink(HOGERC_PATH)).to eq '/working/$ENV_VAR/.hogerc'
-        end
-
-        it 'skips files set up' do
-          Finker::CLI.new.setup # runs two times
-
-          expect(File.lstat('/working/path/to/file').ftype).to eq 'file'
-          expect(File.lstat('/working/$ENV_VAR/.hogerc').ftype).to eq 'file'
+      it 'creates symbolic links' do
+        [FILE_PATH, HOGERC_PATH].each do |path|
+          expect(File.lstat(path).ftype).to eq 'link'
         end
       end
 
-      it 'raises for not existing file' do
+      it 'moves original files' do
+        expect(File.lstat('/working/path/to/file').ftype).to eq 'file'
+        expect(File.lstat('/working/$ENV_VAR/.hogerc').ftype).to eq 'file'
+      end
+
+      it 'creates symbolic links pointing valid files' do
+        expect(File.readlink(FILE_PATH)).to eq '/working/path/to/file'
+        expect(File.readlink(HOGERC_PATH)).to eq '/working/$ENV_VAR/.hogerc'
+      end
+
+      it 'skips files set up' do
+        Finker::CLI.new.setup # runs two times
+
+        expect(File.lstat('/working/path/to/file').ftype).to eq 'file'
+        expect(File.lstat('/working/$ENV_VAR/.hogerc').ftype).to eq 'file'
+      end
+
+      it 'raises for not existing file', skip_setup_before: true do
         expect do
           Finker::CLI.new.setup
         end.to raise_error(Finker::Errors::FileNotFound)
