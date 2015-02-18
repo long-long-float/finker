@@ -81,7 +81,9 @@ link:
     end
 
     describe '#install' do
-      before do
+      before do |example|
+        next if example.metadata[:skip_install_before]
+
         %w(/working/path/to/file /working/$ENV_VAR/.hogerc).each do |path|
           FileUtils.mkdir_p(File.dirname(path))
           FileUtils.touch(path)
@@ -91,6 +93,20 @@ link:
       end
 
       it_makes_files_conformity
+
+      it 'asks whether it removes existing file' do
+        cli = Finker::CLI.new
+        allow(cli).to receive(:yes?).and_return(true)
+
+        cli.install
+        expect(cli).to have_received(:yes?).twice
+      end
+
+      it 'raises for not existing file', skip_install_before: true do
+        expect do
+          Finker::CLI.new.install
+        end.to raise_error(Finker::Errors::FileNotFound)
+      end
     end
   end
 end
