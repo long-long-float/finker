@@ -7,6 +7,8 @@ require 'pathname'
 
 module Finker
   class CLI < Thor
+    include Thor::Actions
+
     def initialize(args = [], options = {}, config = {})
       super
 
@@ -40,7 +42,18 @@ module Finker
     desc 'install', 'remove original files and create symbolic links'
     def install
       @config.each_links do |path, raw_path|
-        File.exist?(path) && FileUtils.rm(path)
+        if File.exist?(path)
+          if yes?("Would you remove #{path}?")
+            FileUtils.rm(path)
+          else
+            next
+          end
+        end
+
+        unless File.exist?(raw_path)
+          raise Finker::Errors::FileNotFound, raw_path
+        end
+
         FileUtils.ln_s(raw_path, path)
       end
     end
