@@ -29,6 +29,24 @@ link:
       FileUtils.mkdir_p('/home/hoge')
     end
 
+    def self.it_makes_files_conformity
+      it 'creates symbolic links' do
+        [FILE_PATH, HOGERC_PATH].each do |path|
+          expect(File.lstat(path).ftype).to eq 'link'
+        end
+      end
+
+      it 'puts original files on current directory' do
+        expect(File.lstat('/working/path/to/file').ftype).to eq 'file'
+        expect(File.lstat('/working/$ENV_VAR/.hogerc').ftype).to eq 'file'
+      end
+
+      it 'creates symbolic links pointing files on current directory' do
+        expect(File.readlink(FILE_PATH)).to eq '/working/path/to/file'
+        expect(File.readlink(HOGERC_PATH)).to eq '/working/$ENV_VAR/.hogerc'
+      end
+    end
+
     it 'raises if config file is not existing', skip_before: true do
       expect do
         Finker::CLI.new.start
@@ -46,21 +64,7 @@ link:
         Finker::CLI.new.setup
       end
 
-      it 'creates symbolic links' do
-        [FILE_PATH, HOGERC_PATH].each do |path|
-          expect(File.lstat(path).ftype).to eq 'link'
-        end
-      end
-
-      it 'moves original files' do
-        expect(File.lstat('/working/path/to/file').ftype).to eq 'file'
-        expect(File.lstat('/working/$ENV_VAR/.hogerc').ftype).to eq 'file'
-      end
-
-      it 'creates symbolic links pointing valid files' do
-        expect(File.readlink(FILE_PATH)).to eq '/working/path/to/file'
-        expect(File.readlink(HOGERC_PATH)).to eq '/working/$ENV_VAR/.hogerc'
-      end
+      it_makes_files_conformity
 
       it 'skips files set up' do
         Finker::CLI.new.setup # runs two times
@@ -74,6 +78,19 @@ link:
           Finker::CLI.new.setup
         end.to raise_error(Finker::Errors::FileNotFound)
       end
+    end
+
+    describe '#install' do
+      before do
+        %w(/working/path/to/file /working/$ENV_VAR/.hogerc).each do |path|
+          FileUtils.mkdir_p(File.dirname(path))
+          FileUtils.touch(path)
+        end
+
+        Finker::CLI.new.install
+      end
+
+      it_makes_files_conformity
     end
   end
 end
