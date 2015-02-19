@@ -42,16 +42,16 @@ module Finker
     desc 'install', 'remove original files and create symbolic links'
     def install
       @config.each_links do |path, raw_path|
+        unless File.exist?(raw_path)
+          raise Finker::Errors::FileNotFound, raw_path
+        end
+
         if File.exist?(path)
-          if yes?("Would you remove #{path}?")
+          if yes?("Would you remove #{path} ?")
             FileUtils.rm(path)
           else
             next
           end
-        end
-
-        unless File.exist?(raw_path)
-          raise Finker::Errors::FileNotFound, raw_path
         end
 
         FileUtils.ln_s(raw_path, path)
@@ -61,7 +61,18 @@ module Finker
     desc 'uninstall', 'remove linked files and copy here files'
     def uninstall
       @config.each_links do |path, raw_path|
-        File.exist?(path) && FileUtils.rm(path)
+        unless File.exist?(raw_path)
+          raise Finker::Errors::FileNotFound, raw_path
+        end
+
+        next unless File.exist?(path)
+
+        if File.exist?(path) and File.lstat(path).ftype == 'file'
+          unless yes?("Would you override #{path} ?")
+            next
+          end
+        end
+
         FileUtils.cp(raw_path, path)
       end
     end
