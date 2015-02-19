@@ -108,5 +108,57 @@ link:
         end.to raise_error(Finker::Errors::FileNotFound)
       end
     end
+
+    describe '#uninstall' do
+      before do |example|
+        next if example.metadata[:skip_uninstall_before]
+
+        [FILE_PATH, HOGERC_PATH].each do |path|
+          FileUtils.touch(path)
+        end
+
+        Finker::CLI.new.setup
+
+        Finker::CLI.new.uninstall
+      end
+
+      it 'returns files to declared location' do
+        [FILE_PATH, HOGERC_PATH].each do |path|
+          expect(File.lstat(path).ftype).to eq 'file'
+        end
+      end
+
+      it 'asks whether it overrides existing file(not symbolic link)', skip_uninstall_before: true do
+        [*%w(/working/path/to/file /working/$ENV_VAR/.hogerc), FILE_PATH, HOGERC_PATH].each do |path|
+          FileUtils.mkdir_p(File.dirname(path))
+          FileUtils.touch(path)
+        end
+
+        cli = Finker::CLI.new
+        allow(cli).to receive(:yes?).and_return(true)
+
+        cli.uninstall
+        expect(cli).to have_received(:yes?).twice
+      end
+
+      it 'skips if files on declared location doesn\'t exist', skip_uninstall_before: true do
+        %w(/working/path/to/file /working/$ENV_VAR/.hogerc).each do |path|
+          FileUtils.mkdir_p(File.dirname(path))
+          FileUtils.touch(path)
+        end
+
+        Finker::CLI.new.uninstall
+
+        [FILE_PATH, HOGERC_PATH].each do |path|
+          expect(File.exist?(path)).to be false
+        end
+      end
+
+      it 'raises if files on current directory diesn\'t exist', skip_uninstall_before: true do
+        expect do
+          Finker::CLI.new.uninstall
+        end.to raise_error(Finker::Errors::FileNotFound)
+      end
+    end
   end
 end
