@@ -9,6 +9,8 @@ describe Finker do
   end
 
   describe Finker::CLI do
+    let(:cli) { Finker::CLI.new }
+
     before do |example|
       next if example.metadata[:skip_before]
 
@@ -49,7 +51,7 @@ link:
 
     it 'raises if config file is not existing', skip_before: true do
       expect do
-        Finker::CLI.new.start
+        cli.start
       end.to raise_error(Finker::Errors::ConfigFileNotFound)
     end
 
@@ -61,13 +63,13 @@ link:
           FileUtils.touch(path)
         end
 
-        Finker::CLI.new.setup
+        cli.setup
       end
 
       it_makes_files_conformity
 
       it 'skips files set up' do
-        Finker::CLI.new.setup # runs two times
+        cli.setup # runs two times
 
         expect(File.lstat('/working/path/to/file').ftype).to eq 'file'
         expect(File.lstat('/working/$ENV_VAR/.hogerc').ftype).to eq 'file'
@@ -75,7 +77,7 @@ link:
 
       it 'raises for not existing file', skip_setup_before: true do
         expect do
-          Finker::CLI.new.setup
+          cli.setup
         end.to raise_error(Finker::Errors::FileNotFound)
       end
     end
@@ -89,22 +91,22 @@ link:
           FileUtils.touch(path)
         end
 
-        Finker::CLI.new.install
+        cli.install
       end
 
       it_makes_files_conformity
 
       it 'asks whether it removes existing file' do
-        cli = Finker::CLI.new
-        allow(cli).to receive(:yes?).and_return(true)
+        cli_ = cli
+        allow(cli_).to receive(:yes?).and_return(true)
 
         cli.install
-        expect(cli).to have_received(:yes?).twice
+        expect(cli_).to have_received(:yes?).twice
       end
 
       it 'raises for not existing file', skip_install_before: true do
         expect do
-          Finker::CLI.new.install
+          cli.install
         end.to raise_error(Finker::Errors::FileNotFound)
       end
     end
@@ -117,9 +119,9 @@ link:
           FileUtils.touch(path)
         end
 
-        Finker::CLI.new.setup
+        cli.setup
 
-        Finker::CLI.new.uninstall
+        cli.uninstall
       end
 
       it 'returns files to declared location' do
@@ -134,11 +136,11 @@ link:
           FileUtils.touch(path)
         end
 
-        cli = Finker::CLI.new
-        allow(cli).to receive(:yes?).and_return(true)
+        cli_ = cli
+        allow(cli_).to receive(:yes?).and_return(true)
 
         cli.uninstall
-        expect(cli).to have_received(:yes?).twice
+        expect(cli_).to have_received(:yes?).twice
       end
 
       it 'skips if files on declared location doesn\'t exist', skip_uninstall_before: true do
@@ -147,7 +149,7 @@ link:
           FileUtils.touch(path)
         end
 
-        Finker::CLI.new.uninstall
+        cli.uninstall
 
         [FILE_PATH, HOGERC_PATH].each do |path|
           expect(File.exist?(path)).to be false
@@ -156,7 +158,7 @@ link:
 
       it 'raises if files on current directory diesn\'t exist', skip_uninstall_before: true do
         expect do
-          Finker::CLI.new.uninstall
+          cli.uninstall
         end.to raise_error(Finker::Errors::FileNotFound)
       end
     end
@@ -169,11 +171,11 @@ link:
           FileUtils.touch(path)
         end
 
-        Finker::CLI.new.setup
+        cli.setup
       end
 
       it 'shows all files linked' do
-        expect { Finker::CLI.new.status }.to output(<<-EOS).to_stdout
+        expect { cli.status }.to output(<<-EOS).to_stdout
 #{FILE_PATH} - linked
 #{HOGERC_PATH} - linked
       EOS
@@ -183,7 +185,7 @@ link:
         FileUtils.rm(FILE_PATH)
         FileUtils.touch(FILE_PATH)
 
-        expect { Finker::CLI.new.status }.to output(<<-EOS).to_stdout
+        expect { cli.status }.to output(<<-EOS).to_stdout
 #{FILE_PATH} - unlinked
 #{HOGERC_PATH} - linked
         EOS
@@ -192,14 +194,14 @@ link:
       it 'shows that one of files is not found' do
         FileUtils.rm(FILE_PATH)
 
-        expect { Finker::CLI.new.status }.to output(<<-EOS).to_stdout
+        expect { cli.status }.to output(<<-EOS).to_stdout
 #{FILE_PATH} - not existing
 #{HOGERC_PATH} - linked
         EOS
       end
 
       it 'shows that original file is not found', skip_status_before: true do
-        expect { Finker::CLI.new.status }.to output(<<-EOS).to_stdout
+        expect { cli.status }.to output(<<-EOS).to_stdout
 #{FILE_PATH} - original not existing
 #{HOGERC_PATH} - original not existing
         EOS
