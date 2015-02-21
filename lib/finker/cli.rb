@@ -79,13 +79,16 @@ module Finker
 
     desc 'status', 'show status of files under management'
     def status
-      @config.each_links do |path|
+      @config.each_links do |path, raw_path|
         print "#{path} - "
 
-        status = File.exist?(path) ? nil : 'not existing'
-        unless status
-          status = {'link' => 'linked', 'file' => 'unlinked'}[File.ftype(path)]
-        end
+        status = if not File.exist?(raw_path)
+                   'original not existing'
+                 elsif not File.exist?(path)
+                   'not existing'
+                 else
+                   {'link' => 'linked', 'file' => 'unlinked'}[File.lstat(path).ftype]
+                 end
         puts status
       end
     end
