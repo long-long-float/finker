@@ -50,9 +50,7 @@ link:
     end
 
     it 'raises if config file is not existing', skip_before: true do
-      expect do
-        cli.start
-      end.to raise_error(Finker::Errors::ConfigFileNotFound)
+      expect { cli.start }.to raise_error(Finker::Errors::ConfigFileNotFound)
     end
 
     describe '#setup' do
@@ -76,9 +74,7 @@ link:
       end
 
       it 'raises for not existing file', skip_setup_before: true do
-        expect do
-          cli.setup
-        end.to raise_error(Finker::Errors::FileNotFound)
+        expect { cli.setup }.to raise_error(Finker::Errors::FileNotFound)
       end
     end
 
@@ -105,9 +101,7 @@ link:
       end
 
       it 'raises for not existing file', skip_install_before: true do
-        expect do
-          cli.install
-        end.to raise_error(Finker::Errors::FileNotFound)
+        expect { cli.install }.to raise_error(Finker::Errors::FileNotFound)
       end
     end
 
@@ -157,9 +151,7 @@ link:
       end
 
       it 'raises if files on current directory diesn\'t exist', skip_uninstall_before: true do
-        expect do
-          cli.uninstall
-        end.to raise_error(Finker::Errors::FileNotFound)
+        expect { cli.uninstall }.to raise_error(Finker::Errors::FileNotFound)
       end
     end
 
