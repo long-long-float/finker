@@ -160,5 +160,50 @@ link:
         end.to raise_error(Finker::Errors::FileNotFound)
       end
     end
+
+    describe '#status' do
+      before do |example|
+        next if example.metadata[:skip_status_before]
+
+        [FILE_PATH, HOGERC_PATH].each do |path|
+          FileUtils.touch(path)
+        end
+
+        Finker::CLI.new.setup
+      end
+
+      it 'shows all files linked' do
+        expect { Finker::CLI.new.status }.to output(<<-EOS).to_stdout
+#{FILE_PATH} - linked
+#{HOGERC_PATH} - linked
+      EOS
+      end
+
+      it 'shows that one of files is not linked' do
+        FileUtils.rm(FILE_PATH)
+        FileUtils.touch(FILE_PATH)
+
+        expect { Finker::CLI.new.status }.to output(<<-EOS).to_stdout
+#{FILE_PATH} - unlinked
+#{HOGERC_PATH} - linked
+        EOS
+      end
+
+      it 'shows that one of files is not found' do
+        FileUtils.rm(FILE_PATH)
+
+        expect { Finker::CLI.new.status }.to output(<<-EOS).to_stdout
+#{FILE_PATH} - not existing
+#{HOGERC_PATH} - linked
+        EOS
+      end
+
+      it 'shows that original file is not found', skip_status_before: true do
+        expect { Finker::CLI.new.status }.to output(<<-EOS).to_stdout
+#{FILE_PATH} - original not existing
+#{HOGERC_PATH} - original not existing
+        EOS
+      end
+    end
   end
 end
